@@ -8,7 +8,7 @@
   "containerDefinitions": [
     {
       "name": "portfolio11",
-      "image": "779599553720.dkr.ecr.ap-south-1.amazonaws.com/portfolio11:latest",
+      "image": "779599553720.dkr.ecr.us-east-1.amazonaws.com/portfolio11:latest",
       "portMappings": [
         {
           "containerPort": 80,
@@ -20,7 +20,7 @@
         "logDriver": "awslogs",
         "options": {
           "awslogs-group": "/ecs/portfolio11",
-          "awslogs-region": "ap-south-1",
+          "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }
       }
