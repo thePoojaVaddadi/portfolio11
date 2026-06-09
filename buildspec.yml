@@ -1,34 +1,34 @@
-# buildspec.yml
 version: 0.2
 
 env:
   variables:
-    ECR_REPO_URI: "123456789.dkr.ecr.us-east-1.amazonaws.com/my-app"
-    IMAGE_TAG: "latest"
+    AWS_ACCOUNT_ID: "779599553720"
+    AWS_REGION: "us-east-1"
+    ECR_REPO_NAME: "portfolio11"
 
 phases:
+  install:
+    commands:
+      - nohup /usr/local/bin/dockerd --host=unix:///var/run/docker.sock --host=tcp://127.0.0.1:2375 --storage-driver=overlay2 &
+      - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
+
   pre_build:
     commands:
-      - echo Logging into ECR...
-      - aws ecr get-login-password --region us-east-1 | \
-          docker login --username AWS --password-stdin $ECR_REPO_URI
+      - ECR_URI=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO_NAME
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URI
 
   build:
     commands:
-      - echo Build started on `date`
-      - docker build -t $ECR_REPO_URI:$IMAGE_TAG .
-      - docker tag $ECR_REPO_URI:$IMAGE_TAG $ECR_REPO_URI:latest
+      - docker build -t $ECR_URI:$IMAGE_TAG .
+      - docker tag $ECR_URI:$IMAGE_TAG $ECR_URI:latest
 
   post_build:
     commands:
-      - echo Pushing image to ECR...
-      - docker push $ECR_REPO_URI:$IMAGE_TAG
-      - docker push $ECR_REPO_URI:latest
-      # imagedefinitions.json tells CodeDeploy which image to use
-      - printf '[{"name":"my-app","imageUri":"%s"}]' \
-          $ECR_REPO_URI:$IMAGE_TAG > imagedefinitions.json
+      - docker push $ECR_URI:$IMAGE_TAG
+      - docker push $ECR_URI:latest
+      - printf '[{"name":"portfolio11","imageUri":"%s"}]' $ECR_URI:$IMAGE_TAG > imagedefinitions.json
 
 artifacts:
   files:
